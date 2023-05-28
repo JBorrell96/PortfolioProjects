@@ -84,6 +84,9 @@ library(readr)
 
 ##For plotting/visualization later on
 library(ggplot2)
+
+##For introducing more complicated viz
+library(plotrix)
 ```
 
 I then worked on importing my data and created dataframes to call upon for later rbinding into 1 single data frame.
@@ -472,9 +475,25 @@ head(popular_ride_route_top10, 10)
 NROW(filter(bike_rides_casual, start_station_name == "Streeter Dr & Grand Ave" & end_station_name == "Streeter Dr & Grand Ave"))
 ```
 
+### **Share:**
+
+The average ride duration of ~21 minutes for casual rider is almost 2 times higher compared to that of member rider of ~12 minutes.
+
+The average ride duration for member rider shows consistency throughout the week with Monday to Friday at ~12 minutes with a slight increase to ~14 minutes over Saturday and Sunday.
+
+The average ride duration for casual rider is almost consistent throughout the week with Monday to Friday at ~20 minutes; with a slight increase to ~24 minutes on Sunday.
+
+The total number of rides is almost constant throughout 7 days for member riders whereas ~42% of the total ride for casual riders are on Saturday and Sunday only.
+
+
+```{r}
+pie3D(slices_casual_week, labels = lbls_casual_week, explode = 0.1, col= terrain.colors(2), main = "Casual Riders Breakup by Day: Sat-Sun Vs Mon-Fri")
+```
 
 
 
-
+```{r}
+pie3D(slices_casual_month, labels = lbls_casual_month, explode = 0.1, col= terrain.colors(2), main = "Casual Riders Breakup by Month: July-September Vs Rest of the Year")
+```
 
 
