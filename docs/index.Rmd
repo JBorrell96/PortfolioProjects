@@ -9,22 +9,123 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Background: Google DA Capstone Project for certification
+Elected to take up role as junior data analyst working with marketing analyst team at Cyclistic,
+a bike-share company in Chicagp. Cyclistic's program features more than 5,800 bicycles and 600 docking
+stations. Cyclistic sets itself apart from its competitors by also offering reclining bikes, hand tricycles and
+cargo bikes to those who cannot ride a standard two-wheel bike. The majority of their riders opt for traditional
+bikes with about 8% of riders using their alternative assistance options. Cyclistic users are more likely to ride
+for leisure, but about 30% use them to commute to work each day. Customers who purchase single-ride or full-day passes
+are referred to as casual riders whereas customers who purchase annual memberships are Cyclistic members.
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+The director of marketing believes the company's future success depends on maximizing the number of annual memberships.
+Therefore, my team was tasked in finding out how casual riders and annual members use Cyclistic bikes differently. From
+these insights, my team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic
+executives must approve these recommendations, so our insights must be polished and backed by compelling data and detail-oriented
+clear data vizualizations.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+This project will broken up into 6 stages encompassing the Data Analytics stages:
 
-```{r cars}
-summary(cars)
+- Ask: Identify the business task and determine the key stakeholders.
+- Prepare: Collect the data, identify how it's organized and determine the credibility of the data.
+- Process: Select the tool for data cleaning, check for errors and document the cleaning process.
+- Analyze: Organize and format the data, aggregate the data so that it's useful, perform calculations and identify trends and
+relationships.
+- Share: Use design thinking principles and data-driven storytelling approaches, present the findings with effective vizualization.
+Ensure the analysis has answered the business task.
+- Act: Share teh final conclusion and the recommendations.
+
+### **Ask:**
+
+Business Task:
+Recommend marketing strategies aimed at converting casual riders into annual members by better understanding how annual members
+and casual riders use Cyclistic bike services differently
+
+Stakeholders:
+Lily Moreno: The director of marketing and my current manager.
+Cyclistic executive team: A detail-oriented executive team who will decide whether to approve the recommended marketing program
+Cyclistic marketing analytics team: A team of data analysts responsible for collecting, analyzing, and reporting data that helps
+guide Cyclistic's marketing strategy.
+
+
+### **Prepare:**
+
+For this project, I will use the public data of Cyclistic's historical trip data to analyze and identify trends. This data is provided
+to me through Coursera under the Google Data Analytics Certificate program pulled from a course document link providing this [index](https://divvy-tripdata.s3.amazonaws.com/index.html).
+
+I downloaded the ZIP files containing the .csv files from the link above. I will be uploading this file utilizing R Markdown in R
+and filtering the knitted .html file onto Github due to a slight favoritism to the site for version control. I will be analyzing the
+previous 12 months worth of data starting from April 2023 and going all of the way back to March 2022.
+
+In the first stages I utilized Google Sheets to try to upload the data but found the amount of information being imported Google Sheets
+could not handle. I then switched to Microsoft Excel to at least get a glimpse into the data's structure and find out what data I would be
+working with. Information contained in each .csv file was as follows: ride id, rideable type, start and end times, start and end station ids,
+latitude and longitude of start and end stations and start and end stations.
+
+### **Process:**
+
+I will be using the R Programming language for most, if not all, of my organization and data cleaning.
+I will be using the following R libraries:
+
+
+```{r}
+#Load the tidyverse, lubridate, data.table, readr and ggplot2 packages
+##Excellent package for all around cleaning and manipulation
+library(tidyverse)
+
+##For customization and manipulation of date/time
+library(lubridate)
+
+##For dataframe/table manipulation, also allows for faster read in time
+library(data.table)
+
+##For quick read/write in of .csv files
+library(readr)
+
+##For plotting/visualization later on
+library(ggplot2)
 ```
 
-## Including Plots
+I then worked on importing my data and created dataframes to call upon for later rbinding into 1 single data frame.
 
-You can also embed plots, for example:
+```{r}
+#Set the working directory
+setwd("C:/Users/Jon/Documents/Capstone BikeShare Data/tripdata-csv")
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+##Start with clear environment
+rm(list = ls())
+```
+```{r}
+##Assign simple operators df = dataframe 1-12 using data.table::fread()
+##Noticed this had fastest output compared to other read options based on tests
+##Data frame read in ~15 seconds
+df1 <- data.table::fread("202204-divvy-tripdata.csv")
+df2 <- data.table::fread("202205-divvy-tripdata.csv")
+df3 <- data.table::fread("202206-divvy-tripdata.csv")
+df4 <- data.table::fread("202207-divvy-tripdata.csv")
+df5 <- data.table::fread("202208-divvy-tripdata.csv")
+df6 <- data.table::fread("202209-divvy-tripdata.csv")
+df7 <- data.table::fread("202210-divvy-tripdata.csv")
+df8 <- data.table::fread("202211-divvy-tripdata.csv")
+df9 <- data.table::fread("202212-divvy-tripdata.csv")
+df10 <- data.table::fread("202301-divvy-tripdata.csv")
+df11 <- data.table::fread("202302-divvy-tripdata.csv")
+df12 <- data.table::fread("202303-divvy-tripdata.csv")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+##Verify structure and data types of data frames
+str(df1)
+str(df2)
+str(df3)
+str(df4)
+str(df5)
+str(df6)
+str(df7)
+str(df8)
+str(df9)
+str(df10)
+str(df11)
+str(df12)
+```
+
