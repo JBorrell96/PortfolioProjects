@@ -1,0 +1,22 @@
+---
+title: 'Cyclistic: Google DA Capstone'
+author: "Jonathan Borrell"
+date: "2023-05-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Background: Capstone for Google DA Certificate
+
+I will be acting as the junior data analyst for a marketing analyst team working with Cyclistic, a bike-sharing
+company in Chicago. Cyclistic's bike-sharing program features more than 5,800 bicycles and 600 docking stations.
+Cyclistic sets itself apart from its competition by focusing on inclusivety by offering reclining bikes, hand tricycles
+and cargo bikes for those who cannot ride a standard two-wheeled bike. The majority of riders opt for traditional bikes and
+about 8% of riders use the alternative assistance options. Cyclistic
+
+```{r}
+setwd("C:/Users/Jon/Documents/R Docs/CSV/tripdata-csv")
+```
