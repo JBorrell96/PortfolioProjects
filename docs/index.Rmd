@@ -365,6 +365,29 @@ lbls_casual_month <- paste(lbls, "%", sep="")
 lbls_casual_month
 ##Clear that 3 months out of the whole year measures up to being 48.5% of total rides in the year
 ```
+```{r}
+#Find the total member rides by month - July to September compared to rest of the year
+
+total_rides_member_jul_sept <- NROW(filter(bike_rides, member_casual == "member" & (month == "July" | month == "August" | month == "September")))
+
+total_rides_member_jul_sept
+
+total_rides_member_except_Jul_sept <- NROW(filter(bike_rides, member_casual == "member" & !(month == "July" | month == "August" | month == "September")))
+
+total_rides_member_except_Jul_sept
+```
+```{r}
+#Percentage of member riders by month - July to September compared to rest of the year
+
+labs <- c("Jul To Sept", "Rest of the Year")
+slices_member_month <- c(total_rides_member_jul_sept, total_rides_member_except_Jul_sept)
+piepercent <- round(100 * slices_member_month / sum(slices_member_month), 1)
+lbls <- paste(labs, piepercent)
+lbls_member_month <- paste(lbls, "%", sep="")
+
+
+lbls_member_month
+```
 
 
 ```{r}
@@ -483,17 +506,30 @@ The average ride duration for member rider shows consistency throughout the week
 
 The average ride duration for casual rider is almost consistent throughout the week with Monday to Friday at ~20 minutes; with a slight increase to ~24 minutes on Sunday.
 
-The total number of rides is almost constant throughout 7 days for member riders whereas ~42% of the total ride for casual riders are on Saturday and Sunday only.
+The total number of rides is almost constant throughout 7 days for member riders whereas ~37% of the total ride for casual riders are on Saturday and Sunday only.
 
 
 ```{r}
 pie3D(slices_casual_week, labels = lbls_casual_week, explode = 0.1, col= terrain.colors(2), main = "Casual Riders Breakup by Day: Sat-Sun Vs Mon-Fri")
 ```
 
-
+June to August constitute to a little less than 50% of the overall total rides for both casual and member riders; with ~49% for casual riders and ~36% for member riders. If we take into account that there is surge within these 3 months which we can see with our visualizations and we take into account that these 3 months are only a quarter of the year, this percentage of riders with this surge is substantial and should be focused on.
 
 ```{r}
-pie3D(slices_casual_month, labels = lbls_casual_month, explode = 0.1, col= terrain.colors(2), main = "Casual Riders Breakup by Month: July-September Vs Rest of the Year")
+pie3D(slices_casual_month, labels = lbls_casual_month, explode = 0.1, col= terrain.colors(2), main = "Casual Riders Breakup by Month: June-August Vs Rest of the Year")
 ```
 
+### **Act:**
+The high level recommendations for increasing the number of rider membership are:
 
+A little less than 50% of the casual riders use Cyclictic over a span of 3 months from June to August which overall has heavier weight to it considering less than half of total rides are covered in a quarter of the year. We can focus efforts in marketing during big events in Chicago targeting regular weekdays for casual riders due to them utilizing services the most during these days overall. Efforts can be focused towards the top 10 stations and their surrounding area:
+*A weekly, monthly and quarterly membership schemes
+*Increasing the number of bikes' availability over the period of these 3 months
+
+Design campaign to promote the usage of bikes regularly by highlighting the health and environmental benefits.
+
+Collaborate with organizations and companies in promoting the usage of bikes by offering various membership schemes; this will be a win-win situation for both.
+
+Increase the number of classic bikes availability from December to March as the total number of casual rides with electric bikes were high during these months. Design campaigns to promote the electric bike's usage by highlighting its benefits and sustainability for travel.
+
+Further analysis needs to be carried out to find insights to reduce the average ride duration of casual riders as currently although ~43% of the total rides are done by casual riders but the average ride duration is ~3 times more than the member riders. And to increase the availability of bikes; need to shorten the ride duration. Also noticed some abnormalities within data set that were cause for concern such as extended ride length times exceeding hours in ride time. Would need to verify if this was accurate.
