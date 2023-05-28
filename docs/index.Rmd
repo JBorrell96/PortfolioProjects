@@ -24,7 +24,7 @@ these insights, my team will design a new marketing strategy to convert casual r
 executives must approve these recommendations, so our insights must be polished and backed by compelling data and detail-oriented
 clear data vizualizations.
 
-This project will broken up into 6 stages encompassing the Data Analytics stages:
+This project will be broken up into 6 stages encompassing the Data Analytics stages:
 
 - Ask: Identify the business task and determine the key stakeholders.
 - Prepare: Collect the data, identify how it's organized and determine the credibility of the data.
@@ -90,7 +90,7 @@ I then worked on importing my data and created dataframes to call upon for later
 
 ```{r}
 #Set the working directory
-setwd("C:/Users/Jon/Documents/Capstone BikeShare Data/tripdata-csv")
+setwd("C:/Users/Jon/Documents/GitHub/PortfolioProjects/docs")
 
 ##Start with clear environment
 rm(list = ls())
@@ -128,4 +128,365 @@ str(df10)
 str(df11)
 str(df12)
 ```
+
+
+```{r}
+##Notice some issues with data types. We can rbind rows,cols to make one table and clean it after
+bike_rides <- rbind(df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11, df12)
+```
+
+```{r}
+##Check structure of new dataset bike_rides
+str(bike_rides)
+```
+
+
+```{r}
+##Check for missing values within dataset and clean data if %error is low enough to not impact
+##overall analysis
+colSums(is.na(bike_rides))
+```
+
+
+```{r}
+##This will output missing end_lats and end_lng
+bike_rides <- na.omit(bike_rides)
+```
+
+
+```{r}
+##Comparitively this removed 10k rows out of the 5.8 million records
+##For start station id and end station id we will not coerce into int/numeric
+##due to some station ids having characters in them
+
+##Date format was not an issue. Proper date format for start and end at times
+##Work on coercing date into sections, date, month, day, year and day of week, this will
+##allow for aggregation of data based on these values
+bike_rides$date <- as.Date(bike_rides$started_at)
+bike_rides$month <- format(as.Date(bike_rides$date), "%B")
+bike_rides$day <- format(as.Date(bike_rides$date), "%d")
+bike_rides$year <- format(as.Date(bike_rides$date), "%Y")
+bike_rides$day_of_week <- weekdays(bike_rides$date)
+
+##View table to confirm row output is correct
+View(bike_rides)
+```
+
+
+```{r}
+##Next we are going to verify unique values in membership type and rideable type
+unique(bike_rides$member_casual)
+unique(bike_rides$rideable_type)
+```
+
+
+```{r}
+##Membership types verified values as member and casual
+##rideable types verified values as electric, classic and docked
+
+##Check for TEST stations that may lead to inaccurate conclusions
+unique(bike_rides$start_station_name[grep("TEST", bike_rides$start_station_name)])
+##Output generated no test stations
+```
+
+
+```{r}
+##Breakdown creation of a new dataframe based on start location, by pulling start station name
+##long and lat.
+bike_rides_stations <- bike_rides[,c(5,9,10)]
+
+##We can view this dataset to verify locations and analyze later for station popularity
+View(bike_rides_stations)
+```
+
+
+```{r}
+##Since I will be trying to find out station popularity we can remove any duplicates for now
+##and count total number of stations for overall encompass of data spread location
+bike_rides_stations <- bike_rides_stations[!duplicated(bike_rides_stations$start_station_name),]
+
+##New data set should have no duplicates and should include all stations that company operates out of
+View(bike_rides_stations)
+NROW(unique(bike_rides_stations))
+##Verified there are 1700 station
+```
+
+
+```{r}
+##Moving on to calculate ride length in minutes breakdown difference in time end and start
+##to find ride_length time
+bike_rides$ride_length <- difftime(bike_rides$ended_at, bike_rides$started_at)
+
+##Then convert hour time to minute time /60 new format will be minutes and decimal will be seconds
+bike_rides$ride_length <- bike_rides$ride_length/60
+
+##Round trip to 2 decimal places for exact minutes/seconds duration for ride length
+bike_rides$ride_length <- round(bike_rides$ride_length, 2)
+
+##Verify ride_length is established in desired format should total minutes/seconds of trip
+##I will use to aggregate overall ride time and it will be easier to analyze
+View(bike_rides)
+```
+
+
+```{r}
+##Data conversion of ride_length to numeric to aggregate
+bike_rides$ride_length <- as.numeric(as.character(bike_rides$ride_length))
+
+##Remove any observations that are below 0/errors in input
+bike_rides <- filter(bike_rides, ride_length > 0)
+```
+
+
+```{r}
+##Use summary() to quickly find mean, median, min, max for ride_length by rider type
+summary(bike_rides$ride_length)
+```
+
+```{r}
+##Output for summary in comparison will be in minutes with casual members on average riding
+##double the time than members
+bike_rides %>% 
+        group_by(member_casual) %>% 
+        summarise(avg_ride_length = mean(ride_length), median_ride_length = median(ride_length), max_ride_length = max(ride_length), min_ride_length = min(ride_length))
+```
+
+
+```{r}
+##Next I will organize the days of the week and as well as month. Will use the levels function and assign
+##attributes to reflect days in week and months in year
+bike_rides$day_of_week <- ordered(bike_rides$day_of_week, levels = c("Sunday", "Monday", "Tuesday", 
+"Wednesday", "Thursday", "Friday", "Saturday"))
+bike_rides$month <- ordered(bike_rides$month, levels = c("January", "February", "March", "April","May",
+"June", "July", "August", "September", "October", "November", "December"))
+```
+
+
+```{r}
+##Average ride time per day in week members vs. casual users
+aggregate(bike_rides$ride_length ~ bike_rides$member_casual + bike_rides$day_of_week, FUN = mean)
+##Conclusion stays the same from earlier. Average ride times throughout the week are higher
+##for casual members.
+```
+
+
+```{r}
+##Another comparison summarising number of riders throughout week members vs. casual users
+bike_rides_by_day <- bike_rides %>% 
+        group_by(member_casual, day_of_week) %>% 
+        summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>% 
+        arrange(member_casual, day_of_week)
+head(bike_rides_by_day, 14)
+##Output reveals that casual riders tend to ride more often on weekend days. Members ride more
+##throughout the week. Casual riders spend more time in minutes riding overall
+```
+
+
+```{r}
+##Turn off scientific notation and plotting will begin for quick analysis
+options(scipen = 999)
+```
+
+
+```{r}
+##Plot ridership data by type and weekday. using geom_col naming y number of rides and x
+##day of week. Angling x axis text = 60 and adjusting height for a cleaner viz
+bike_rides %>% 
+        group_by(member_casual, day_of_week) %>% 
+        summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>% 
+        arrange(member_casual, day_of_week) %>% 
+        ggplot(aes(x = day_of_week, y = number_of_rides, fill = member_casual)) +
+        geom_col(position = "dodge") + labs(title = "Total Rides by Day", x = "Week Day", y =
+        "Number of Rides") + theme(axis.text.x = element_text(angle = 60, hjust = 1))
+```
+
+
+```{r}
+##Find total casual rides on weekend compared to weekdays
+total_rides_weekend <- NROW(filter(bike_rides, member_casual == 'casual' & 
+(day_of_week == 'Saturday' | day_of_week == 'Sunday')))
+##Print weekend aggregated
+total_rides_weekend
+total_rides_weekdays <- NROW(filter(bike_rides, member_casual == 'casual' & 
+!(day_of_week == 'Saturday' | day_of_week == 'Sunday')))
+##Print weekdays aggregated
+total_rides_weekdays
+##Output shows comparatively 2 days worth of rides accounts for a good portion of total rides
+```
+
+```{r}
+##Calculate this percentage and display in dataset prepped below
+##Create labels split into two attributes, weekdays and weekends
+labs <- c('Mon-Friday', 'Sat-Sun')
+##Prep to assign slices to pie comparison using data above total rides weekdays and weekends
+slices_casual_week <- c(total_rides_weekdays, total_rides_weekend)
+##Prep pie percent where values above are round two values to form percentage divided by the sum
+piepercent <- round(100 * slices_casual_week / sum(slices_casual_week), 1)
+##Apply by pasting values into lbls assignment to then output results
+lbls <- paste(labs, piepercent)
+lbls_casual_week <- paste(lbls, "%", sep = "")
+##Print above
+lbls_casual_week
+##Actual value = 38.8% of rides on weekends
+```
+
+
+```{r}
+##Analyze ridership data by type and month
+bike_rides %>% 
+        group_by(member_casual, month) %>% 
+        summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>% 
+        arrange(member_casual, month)	%>% 
+        ggplot(aes(x = month, y = number_of_rides, fill = member_casual)) +
+        geom_col(position = "dodge") + 
+        labs(title="Total Number of Ride by Month", x = "Month", y = "Number of Rides") + 
+        theme(axis.text.x = element_text(angle = 60, hjust = 1))
+##Noticing plotted data we can see that peak time for bike sharing over this year have been between months May to Oct.
+##with "Peak" ride months being June to August
+```
+
+
+```{r}
+##Total casual rides by month June to August (Peak) compared to the rest of the year
+total_rides_casual_jun_aug <- NROW(filter(bike_rides, member_casual == 'casual' & (month == 'June' | month == 'July'
+| month == 'August')))
+
+##Output total 1,131,336
+```
+
+```{r}
+total_rides_casual_except_jun_aug <- NROW(filter(bike_rides, member_casual == 'casual' & !(month == 'June' | month == 'July'
+| month == 'August')))
+
+##Output total 1,200,673
+```
+
+
+```{r}
+##Percentage calculation of casual riders by month - June to August compared to the rest of the year
+labs <- c("Jun To Aug", "Rest of the Year")
+slices_casual_month <- c(total_rides_casual_jun_aug, total_rides_casual_except_jun_aug)
+piepercent <- round(100 * slices_casual_month / sum(slices_casual_month), 1)
+lbls <- paste(labs, piepercent)
+lbls_casual_month <- paste(lbls, "%", sep="")
+
+
+lbls_casual_month
+##Clear that 3 months out of the whole year measures up to being 48.5% of total rides in the year
+```
+
+
+```{r}
+##Create a new data frame for member riders
+bike_rides_members <- filter(bike_rides, member_casual == 'member')
+```
+
+
+```{r}
+##Analyze member rider data by type and month
+bike_rides_members %>% 
+        group_by(rideable_type, month) %>% 
+        summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>% 
+        arrange(rideable_type, month) %>% 
+        ggplot(aes(x = month, y = number_of_rides, fill = rideable_type)) +
+        geom_col(position = "dodge") +
+        labs(title = "Total # of Member Rides/Month", x = "Month", y = "Number of Rides") +
+        theme(axis.text.x = element_text(angle = 60, hjust = 1))
+
+##Output we can see that members seem to prefer classic bikes over electric bikes in months May and June
+##Also notices within dataset bike_rides_members, members do not use docked_bikes.
+unique(bike_rides_members$rideable_type)
+```
+
+
+```{r}
+##Analyze member rider data by type and day of week
+bike_rides_members %>% 
+        group_by(rideable_type, day_of_week) %>% 
+        summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>% 
+        arrange(rideable_type, day_of_week) %>% 
+        ggplot(aes(x = day_of_week, y = number_of_rides, fill = rideable_type)) +
+        geom_col(position = "dodge") +
+        labs(title = "Total # of Member Rides by Day", x = "Week Day", y = "Number of Rides") +
+        theme(axis.text.x = element_text(angle = 60, hjust = 1))
+##Not nearly as compelling, recognized slight pattern in higher counts of ridership for members riding classic
+##bikes during days = Sunday, Monday, Tuesday. Days Thurs and Fri have more electric bike useage
+```
+
+
+```{r}
+##Create a new data frame for casual riders
+bike_rides_casual <- filter(bike_rides, member_casual == 'casual')
+```
+
+
+```{r}
+bike_rides_casual %>% 
+        group_by(rideable_type, month) %>% 
+        summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>% 
+        arrange(rideable_type, month) %>% 
+        ggplot(aes(x = month, y = number_of_rides, fill = rideable_type)) +
+        geom_col(position = "dodge") +
+        labs(title = "Total # of Casual Riders/Month", x = "Month", y = "Number of Casual Rides") +
+        theme(axis.text.x = element_text(angle = 6, hjust = 1))
+
+##Output overall usage clearly shows casual riders preferred use is of electric bikes with a major shift to preference
+##heavily favoring electric bikes after the month of June
+```
+
+
+```{r}
+##Analyze casual ridership data by day of week
+bike_rides_casual %>% 
+        group_by(rideable_type, day_of_week) %>% 
+        summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>% 
+        arrange(rideable_type, day_of_week) %>% 
+        ggplot(aes(x = day_of_week, y = number_of_rides, fill = rideable_type)) +
+        geom_col(position = "dodge") +
+        labs(title = "Total # of Casual Riders by Day", x = "Week Day", y = "Number of Casual Rides") +
+        theme(axis.text.x = element_text(angle = 6, hjust = 1))
+
+##Overall preference still shows casual riders prefer electric bikes and we still have confirmation weekend usage
+##being higher overall compared to weekdays
+```
+
+
+```{r}
+##Now to look at routes. I will analyze data to find patterns in popular routes and stations targeting casual riders
+bike_rides_casual <- bike_rides_casual %>% 
+        mutate(route = paste(start_station_name, "To", sep = " "))
+
+bike_rides_casual <- bike_rides_casual %>% 
+        mutate(route = paste(end_station_name, sep = " "))
+
+bike_rides_casual <- bike_rides_casual %>% 
+        mutate(route = paste(start_station_name, "To", end_station_name, sep = " "))
+##This will add a column called route and paste both the start station to the end station to the column
+```
+
+
+```{r}
+##Find the most popular route by number of casual rides
+popular_ride_route <- bike_rides_casual %>% 
+        group_by(route) %>% 
+        summarise(number_of_rides = n(), average_duration_minutes = mean(ride_length)) %>% 
+        arrange(route, number_of_rides, average_duration_minutes)
+
+##Create a data set of top 10 routes for casual riders
+popular_ride_route_top10 <- head(arrange(popular_ride_route, desc(number_of_rides)), 10)
+head(popular_ride_route_top10, 10)
+##Clearly it can be seen that there is heavy use of the Streeter Dr. & Grand Ave route = 10346 where the 2nd
+##highest number of routes was DuSable Lake Shore Dr & Monroe St.
+```
+
+```{r}
+##Verify by filtering number of rows in the bike_rides_casual dataset to get count. I will verify the top used route
+NROW(filter(bike_rides_casual, start_station_name == "Streeter Dr & Grand Ave" & end_station_name == "Streeter Dr & Grand Ave"))
+```
+
+
+
+
+
+
 
